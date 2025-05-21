@@ -1,0 +1,53 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+        INSTALL_NPM_ASSETS: false
+    secrets:
+      - npmrc
+    volumes:
+      - '.:/src'
+      - '/src/.venv'
+      - '/src/node_modules'
+      - '/src/static/assets'
+    depends_on: [ 'redis' ]
+    command: pytest tests --redis-host=redis --docker
+    networks:
+        - mgo_vad_test
+
+  redis:
+    image: redis:6.2.17
+    restart: 'no'
+    ports:
+      - '16379'
+    command: ["redis-server", "--port", "16379"]
+    networks:
+        - mgo_vad_test
+
+  redis-init:
+    depends_on: [ 'redis' ]
+    image: redis:6.2.17
+    restart: 'no'
+    command: 'redis-cli -h redis -p 16379 set max:primary_identity_provider tvs'
+
+  brp:
+    image: ghcr.io/brp-api/personen-mock:2.3.0-latest
+    environment:
+        - ASPNETCORE_ENVIRONMENT=Release
+        - ASPNETCORE_URLS=http://+:5010
+    ports:
+        - "15010:5010"
+    networks:
+        - mgo_vad_test
+
+networks:
+  mgo_vad_test:
+    driver: bridge
+
+secrets:
+  npmrc:
+    file: ~/.npmrc
