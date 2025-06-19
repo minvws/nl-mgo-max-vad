@@ -254,7 +254,7 @@ typing-extensions==4.12.2
     #   pydantic-core
     #   pyopenssl
     #   uvicorn
-urllib3==2.2.2
+urllib3==2.5.0
     # via
     #   requests
     #   types-requests
