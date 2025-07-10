@@ -175,3 +175,22 @@ def test_auth_session_renew_returns_cookie_with_extended_ttl(
 
     auth_session_cache_mock.renew.assert_called_with(str(auth_session_id))
     auth_session_cookie_builder_mock.create.assert_called_with(auth_session_id)
+
+
+def test_auth_session_renew_preflights_allows_post_method_from_non_registered_client(
+    lazy_app,
+    config,
+):
+    config["auth_session"]["enabled"] = "True"
+    test_client: TestClient = lazy_app.value
+
+    response = test_client.options(
+        "/auth/session/renew",
+        headers={
+            "Origin": "http://non.registered.client.org",
+            "Access-Control-Request-Method": "POST",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["Access-Control-Allow-Origin"] == "*"

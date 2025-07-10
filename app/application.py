@@ -21,6 +21,7 @@ from app.routers.docs_router import DocsRouter
 from app.routers.misc_router import misc_router
 from app.routers.oidc_router import oidc_router
 from app.routers.saml_router import saml_router
+from app.services.cors.services import PathAwareCORSMiddleware
 from app.vad.module import init_module as init_vad_module
 
 _exception_handlers: List[Tuple[Union[int, Type[Exception]], Callable]] = [
@@ -126,7 +127,18 @@ def create_fastapi_app(
     app.dependency_injection.container._container = (  # pylint: disable=protected-access
         container
     )
-    fastapi.add_middleware(CORSMiddleware, allow_origins=_parse_origins(container))
+
+    fastapi.add_middleware(
+        PathAwareCORSMiddleware,
+        default_middleware=lambda app: CORSMiddleware(
+            app=app, allow_origins=_parse_origins(container)
+        ),
+        middleware_by_path={
+            "/auth/session/renew": lambda app: CORSMiddleware(
+                app=app, allow_origins=["*"], allow_methods=["POST"]
+            ),
+        },
+    )
 
     _add_exception_handlers(fastapi)
 

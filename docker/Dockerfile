@@ -5,7 +5,7 @@ FROM python:${PYTHON_VERSION}-bookworm AS base
 
 ARG REMOTE_SOURCE_DIR="/src" \
     LOCAL_SOURCE_DIR="." \
-    NODE_VERSION=18 \
+    NODE_VERSION=22 \
     APP_USER="app" \
     APP_GROUP="app" \
     UID=1000 \
@@ -54,11 +54,9 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     . /src/.venv/bin/activate && \
     pip install -U pip && \
     pip install pip-tools && \
-    pip-compile --extra dev && \
-    pip-sync && \
-    pip install -e . && \
-    pip install --no-binary lxml lxml==4.9.3 --force-reinstall && \
-    pip install --no-binary xmlsec xmlsec==1.3.14 --no-deps --force-reinstall
+    pip install -r requirements.txt && \
+    pip install --force-reinstall --no-binary=xmlsec xmlsec==1.3.15 --no-deps && \
+    pip install --force-reinstall --no-binary=lxml lxml==5.4.0 --no-deps
 
 FROM base AS final
 

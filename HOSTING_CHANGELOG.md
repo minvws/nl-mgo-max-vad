@@ -2,11 +2,15 @@
 
 - NEXT FUTURE RELEASE
 
-- [0.3.0] 2025-04-25
+- [0.4.0]
 
   No changes required
 
-- [0.2.0] 2025-04-11
+- [0.3.0]
+
+  No changes required
+
+- [0.2.0]
 
   Added:
 
@@ -16,7 +20,7 @@
     - cookie_expiry_offset_seconds: 10
       - string
 
-- [0.1.0] 2025-03-21
+- [0.1.0]
 
   Added:
 
