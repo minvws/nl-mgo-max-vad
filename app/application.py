@@ -1,160 +1,95 @@
-# pylint: disable=c-extension-no-member, too-few-public-methods
+# pylint: disable=c-extension-no-member
+from functools import lru_cache
+import json
 import logging
-import urllib.parse
-from configparser import ConfigParser
-from typing import Callable, List, Tuple, Type, Union
+from typing import Any
 
+import inject
 import uvicorn
 from fastapi import FastAPI
-from fastapi.exceptions import RequestValidationError
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 
-import app.dependency_injection.container
-from app.dependency_injection.config import get_config, get_swagger_config
-from app.dependency_injection.container import Container
-from app.exceptions.oidc_exception_handlers import general_exception_handler
-from app.misc.utils import get_version_from_file
-from app.routers.auth_session_router import auth_session_router
-from app.routers.digid_mock_router import digid_mock_router
-from app.routers.docs_router import DocsRouter
-from app.routers.misc_router import misc_router
-from app.routers.oidc_router import oidc_router
-from app.routers.saml_router import saml_router
-from app.services.cors.services import PathAwareCORSMiddleware
-from app.vad.module import init_module as init_vad_module
+from max_core.application import setup_max_core
 
-_exception_handlers: List[Tuple[Union[int, Type[Exception]], Callable]] = [
-    (Exception, general_exception_handler),
-    (RequestValidationError, general_exception_handler),
-]
+from app.bindings import AppBindings
+from app.config.schemas import VadConfig, UvicornConfig
+from app.cbp import init_cbp_module
+from app.cbp.lifespan import prefetch_cbp_clients
+from app.docs import init_docs_module
+from app.utils import load_config
 
 
-def kwargs_from_config():
-    config = get_config()
+def kwargs_from_config(config: UvicornConfig):
     kwargs = {
-        "host": config.get("uvicorn", "host"),
-        "port": config.getint("uvicorn", "port"),
-        "reload": config.getboolean("uvicorn", "reload"),
+        "host": config.host,
+        "port": config.port,
+        "reload": config.reload,
         "proxy_headers": True,
-        "workers": config.getint("uvicorn", "workers"),
-        "factory": True,
+        "workers": config.workers,
     }
 
-    reload_includes = config.get("uvicorn", "reload_includes", fallback=None)
-    if reload_includes is not None and reload_includes != "":
-        kwargs["reload_includes"] = config.get("uvicorn", "reload_includes").split(" ")
+    if config.reload_includes is not None and config.reload_includes != "":
+        kwargs["reload_includes"] = config.reload_includes.split(" ")
 
-    if config.getboolean("uvicorn", "use_ssl"):
-        kwargs["ssl_keyfile"] = (
-            config.get("uvicorn", "base_dir") + "/" + config.get("uvicorn", "key_file")
-        )
-        kwargs["ssl_certfile"] = (
-            config.get("uvicorn", "base_dir") + "/" + config.get("uvicorn", "cert_file")
-        )
+    if config.use_ssl:
+        if config.base_dir is None:
+            raise ValueError("base_dir must not be None when use_ssl is True")
+        if config.key_file is None:
+            raise ValueError("key_file must not be None when use_ssl is True")
+        if config.cert_file is None:
+            raise ValueError("cert_file must not be None when use_ssl is True")
+
+        kwargs["ssl_keyfile"] = config.base_dir + "/" + config.key_file
+        kwargs["ssl_certfile"] = config.base_dir + "/" + config.cert_file
+
     return kwargs
 
 
-def _add_exception_handlers(fastapi: FastAPI):
-    for tup in _exception_handlers:
-        fastapi.add_exception_handler(tup[0], tup[1])
-
-
-def run():
-    uvicorn.run("app.application:create_fastapi_app", **kwargs_from_config())
-
-
-def _parse_origins(container: Container) -> List[str]:
-    clients = container.pyop_services.clients()
-    origins = []
-    for client in clients:
-        for redirect_url in clients[client]["redirect_uris"]:
-            parsed = urllib.parse.urlparse(redirect_url)
-            origins.append(parsed.scheme + "://" + parsed.netloc)
-    return origins
-
-
-def create_fastapi_app(
-    config: Union[ConfigParser, None] = None, container: Union[Container, None] = None
-) -> FastAPI:
-    container = container if container is not None else Container()
-    _config: ConfigParser = config if config is not None else get_config()
-    loglevel = logging.getLevelName(_config.get("app", "loglevel").upper())
-    swagger_config = get_swagger_config(_config)
-
-    _version_file_path = _config.get("app", "version_file_path", fallback=None)
-    version = get_version_from_file(_version_file_path)
-
-    if isinstance(loglevel, str):
-        raise ValueError(f"Invalid loglevel {loglevel.upper()}")
-    logging.basicConfig(
-        level=loglevel,
-        datefmt="%m/%d/%Y %I:%M:%S %p",
+def run() -> None:
+    config = _load_config_once()
+    uvicorn.run(
+        "app.application:uvicorn_app_factory",
+        factory=True,
+        **kwargs_from_config(config.uvicorn)
     )
 
-    modules = [
-        "app.dependencies.saml_dependencies",
-        "app.middlewares",
-        "app.routers.saml_router",
-        "app.routers.oidc_router",
-        "app.routers.auth_session_router",
-        "app.routers.digid_mock_router",
-        "app.routers.misc_router",
-        "app.routers.docs_router",
-        "app.exceptions.oidc_exception_handlers",
-        "app.exceptions.oidc_exceptions",
-    ]
-    container.config.from_dict(dict(_config))
-    is_production = _config.get("app", "environment").startswith("prod")
 
-    openapi_url = None
-    if swagger_config.enabled and swagger_config.openapi_endpoint:
-        openapi_url = swagger_config.openapi_endpoint
+def uvicorn_app_factory() -> FastAPI:
+    config = _load_config_once()
+    return create_app(config)
 
-    fastapi = FastAPI(
+
+def create_app(config: VadConfig) -> FastAPI:
+    version = _load_version(config.app.version_file_path)
+    logging.basicConfig(level=config.app.loglevel.upper())
+
+    inject.configure_once(
+        AppBindings(config),
+        allow_override=True,
+    )
+
+    app = FastAPI(
+        title="max-vad",
+        summary="Vertrouwde AuthenticatieDienst",
+        version=version,
         docs_url=None,
         redoc_url=None,
-        openapi_url=openapi_url,
-        version=version,
-        title=_config.get("app", "name", fallback="max"),
+        openapi_url=config.swagger.openapi_endpoint if config.swagger.enabled else None,
+        lifespan=prefetch_cbp_clients,
     )
 
-    _include_routes(swagger_config, is_production, fastapi)
+    setup_max_core(app, config)
+    init_docs_module(app)
+    init_cbp_module(app)
 
-    fastapi.mount("/static", StaticFiles(directory="static"), name="static")
-    container.wire(modules=modules)
-    fastapi.container = container  # type: ignore
-    app.dependency_injection.container._container = (  # pylint: disable=protected-access
-        container
-    )
-
-    fastapi.add_middleware(
-        PathAwareCORSMiddleware,
-        default_middleware=lambda app: CORSMiddleware(
-            app=app, allow_origins=_parse_origins(container)
-        ),
-        middleware_by_path={
-            "/auth/session/renew": lambda app: CORSMiddleware(
-                app=app, allow_origins=["*"], allow_methods=["POST"]
-            ),
-        },
-    )
-
-    _add_exception_handlers(fastapi)
-
-    if _config.get("app", "userinfo_service") == "vad":
-        init_vad_module(container)
-
-    return fastapi
+    return app
 
 
-def _include_routes(swagger_config, is_production, fastapi):
-    fastapi.include_router(saml_router)
-    fastapi.include_router(oidc_router)
-    fastapi.include_router(misc_router)
-    fastapi.include_router(auth_session_router)
-    if swagger_config.enabled:
-        docs_router = DocsRouter(swagger_config, app=fastapi)
-        fastapi.include_router(docs_router.get_docs_router())
-    if not is_production:
-        fastapi.include_router(digid_mock_router)
+@lru_cache(maxsize=1)
+def _load_config_once() -> VadConfig:
+    return load_config("app.conf")
+
+
+def _load_version(file_path: str) -> str:
+    with open(file_path, encoding="utf-8") as file:
+        version_data: dict[str, Any] = json.load(file)
+    return version_data.get("version", "v0.0.0")

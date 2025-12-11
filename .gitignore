@@ -15,21 +15,25 @@ coverage.xml
 .DS_Store
 *.bak
 .npmrc
+
+# used for local path development
+local-packages/*
+!local-packages/.gitkeep
+
 ## Configuration and secrets
 secrets
-tests/secrets
 clients.json
-json_schema.json
 login_methods.json
-!tests/resources/test_settings.json
-!tests/manifest.json
 !package.json
 !package-lock.json
 !lang/*.json
-!tests/clients.test.json
 
-*.conf
+app.conf
+
 *.crt
 *.key
 settings.json
 idp_metadata.xml
+
+## Caches
+cache

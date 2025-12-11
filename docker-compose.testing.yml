@@ -4,9 +4,8 @@ services:
       context: .
       dockerfile: ./docker/Dockerfile
       args:
-        UID: ${UID:-1000}
-        GID: ${GID:-1000}
-        INSTALL_NPM_ASSETS: false
+        NEW_UID: ${UID:-1000}
+        NEW_GID: ${GID:-1000}
     secrets:
       - npmrc
     volumes:
@@ -15,7 +14,7 @@ services:
       - '/src/node_modules'
       - '/src/static/assets'
     depends_on: [ 'redis' ]
-    command: pytest tests --redis-host=redis --docker
+    command: pytest tests
     networks:
         - mgo_vad_test
 

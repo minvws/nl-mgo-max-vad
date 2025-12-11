@@ -2,27 +2,6 @@
 
 ## Table of Contents
 
-## Disclaimer
-
-This project and all associated code serve solely as documentation
-and demonstration purposes to illustrate potential system
-communication patterns and architectures.
-
-This codebase:
-
-- Is NOT intended for production use
-- Does NOT represent a final specification
-- Should NOT be considered feature-complete or secure
-- May contain errors, omissions, or oversimplified implementations
-- Has NOT been tested or hardened for real-world scenarios
-
-The code examples are only meant to help understand concepts and demonstrate possibilities.
-
-By using or referencing this code, you acknowledge that you do so at your own
-risk and that the authors assume no liability for any consequences of its use.
-
-**Flow:**
-
 - [Definitions](#definitions)
 - [Purpose](#purpose)
 - [Features](#features)
@@ -32,50 +11,61 @@ risk and that the authors assume no liability for any consequences of its use.
 - [Installation](#installation)
   - [Prerequisites](#prerequisites)
   - [Setup](#setup)
+    - [Enable SSH agent forwarding](#enable-ssh-agent-forwarding)
   - [Run the application](#run-the-application)
   - [OpenAPI](#openapi)
 - [Contributing](#contributing)
   - [Visual Studio Code](#visual-studio-code)
     - [Developing inside a Container](#developing-inside-a-container)
 - [Documentation](#documentation)
+- [Considerations](#considerations)
 - [Disclaimer](#disclaimer)
 - [License](#license)
 - [Security](#security)
 
 ## Definitions
 
-| Abbreviation | Term                           | Description                                                                                                                                        |
-| ------------ | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **VAD**      | Vertrouwde AuthenticatieDienst | Trusted Authentication Service. Used to describe the interconnected services that facilitate DigiD login, BRP data enrichment and Pseudonymization |
-| **OIDC**     | OpenID Connect                 | An interoperable authentication protocol based on the OAuth 2.0 framework of specifications (IETF RFC 6749 and 6750)                               |
-| **BSN**      | BurgerServiceNummer            | Dutch equivalent of a Social Security Number, assigned to every Dutch citizen.                                                                     |
-| **PII**      | Personally Identifiable Info   | Information that can be used to identify a person                                                                                                  |
-| **PDN**      | Pseudonym                      | A deterministic, organisation-specific pseudonym for PII                                                                                           |
-| **BRP**      | BasisRegistratie Personen      | Dutch Personal Records Database. Contains information about Dutch citizens                                                                         |
-| **PRS**      | Pseudonym Reference Service    | An exchange service facilitating interoperability between clients by providing RIDs and PDNs                                                       |
-| **RID**      | Reference ID                   | A token that can be exchanged once for a PDN at PRS                                                                                                |
+| Abbreviation | Term                             | Description                                                                                                                                         |
+| ------------ | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **VAD**      | Vertrouwde AuthenticatieDienst   | Trusted Authentication Service. Used to describe the interconnected services that facilitate DigiD login, BRP data enrichment and Pseudonymization. |
+| **PGO**      | Persoonlijke Gezondheidsomgeving | An online application facilitating communication and exchange of information between Dutch citizens and healthcare providers.                       |
+| **OIDC**     | OpenID Connect                   | An interoperable authentication protocol based on the OAuth 2.0 framework of specifications (IETF RFC 6749 and 6750).                               |
+| **BSN**      | BurgerServiceNummer              | Dutch equivalent of a Social Security Number, assigned to every Dutch citizen.                                                                      |
+| **PII**      | Personally Identifiable Info     | Information that can be used to identify a person.                                                                                                  |
+| **PDN**      | Pseudonym                        | A deterministic, organisation-specific pseudonym for PII.                                                                                           |
+| **BRP**      | BasisRegistratie Personen        | Dutch Personal Records Database. Contains information about Dutch citizens.                                                                         |
+| **PRS**      | Pseudonym Reference Service      | An exchange service facilitating interoperability between clients by providing RIDs and PDNs.                                                       |
+| **RID**      | Reference ID                     | A token that can be exchanged once for a PDN at PRS.                                                                                                |
 
 ## Purpose
 
-This application builds on the [MAX](https://github.com/minvws/nl-rdo-max/)
-framework, extending its OpenID Connect authentication/authorization
-functionality, mainly adding a userinfo provider that compiles authorization
-context and PII to support the VAD authentication flow.
+In essence, the VAD (Vertrouwde AuthenticatieDienst) is an authorization server
+and OpenID provider that builds on the
+[MAX Core](https://github.com/minvws/irealisatie-max-core) framework, which is
+based on the OpenID Connect protocol. Extending the ID Token part of the flow,
+the VAD provides authenticated clients with end-user information and PRS issued
+access tokens, in order for them to be able to request medical resources from
+healthcare providers pertaining to that end-user. The VAD, as part of a broader
+system for centralized authentication and authorization, aims to improve the
+user-friendliness for all clients while maintaining high standards for security
+and privacy.
 
 ## Features
 
 - It provides a means of authenticating VAD clients using the OIDC protocol
-- It provides an authenticated client with userinfo consisting of a RID and PII
-  retrieved from the BRP
+- It provides an authenticated client with end-user information consisting of a
+  RID and PII retrieved from the BRP (see
+  [Override UserinfoService](./docs/override-userinfoservice.md) for more
+  details)
 - It provides an authenticated client with a short-lived session, allowing
   clients to skip authentication when a valid session is present
 
 ## External integrations
 
-The MGO VAD integrates with several external systems. Below is a list of systems
-specifically part of the VAD extension. Please refer to the
-[MAX](https://github.com/minvws/nl-rdo-max/) documentation for more information
-on external integrations as part of the MAX framework.
+The VAD integrates with several external systems. The list below pertains to the
+VAD domain specifically. Please refer to the
+[MAX Core](https://github.com/minvws/irealisatie-max-core) documentation for
+more information on external integrations as part of the MAX framework.
 
 ### PRS
 
@@ -103,8 +93,9 @@ Please install the below programs if not present:
 - [Docker Compose](https://docs.docker.com/compose/)
 - [Make](https://www.gnu.org/software/make/)
 
-Again, for further in-depth details on the setup of the MAX framework, please
-refer to the [MAX](https://github.com/minvws/nl-rdo-max/) documentation.
+Again, for further in-depth details on the setup of the MAX Core framework,
+please refer to the [MAX Core](https://github.com/minvws/irealisatie-max-core)
+documentation.
 
 ### Setup
 
@@ -113,6 +104,27 @@ To initialize the application, run:
 ```bash
 make setup-remote
 ```
+
+#### Enable SSH agent forwarding
+
+At this point, the MAX Core framework a git-type dependency, because is it not
+yet available as a Python package. Installing this dependency in the Docker
+environment requires a SSH key for authentication. To enable this scenario,
+follow the steps below to automatically forward your local SSH agent if one is
+running.
+
+```sh
+# Example:
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_ed25519   # or your key path
+ssh-add -l                  # verify key is loaded
+```
+
+Note that on macOS, the above `eval` command is not needed. Just make sure to
+add the key to your path, every time the host machine is restarted.
+
+Further information can be found in the
+[VS Code docs](https://code.visualstudio.com/remote/advancedcontainers/sharing-git-credentials).
 
 ### Run the application
 
@@ -126,42 +138,26 @@ The application is now running at http://localhost:8006
 
 ### OpenAPI
 
-A browsable and executable version of the DVP Proxy API is located at:
+A browsable and executable version of the VAD API is located at:
 http://localhost:8006/docs
 
 ## Contributing
 
-### Visual Studio Code
-
-This repository contains shared configuration files, which automates the setup
-of your workspace.
-
-The configuration files reside in the `./.vscode` folder.
-
-VS Code will detect this folder automatically and will recommend that you
-install several extensions. It is advised to install all of them, as it will be
-a good starting point for this project.
-
-#### Developing inside a Container
-
-Once you have installed all the extensions, VS Code may detect a Dev Container
-configuration file and, hence, ask you to reopen the folder to develop in a
-container.
-
-This feature is enabled by the Dev Container extension. It allows you to use a
-container as a full-featured development environment, providing a better
-development experience, including auto-completion, code navigation, and
-debugging.
+See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## Documentation
 
 More detailed documentation is located in the [docs](./docs/) directory.
 
+## Considerations
+
+N.A.
+
 ## Disclaimer
 
-This project and all associated code serve solely as documentation
-and demonstration purposes to illustrate potential system
-communication patterns and architectures.
+This project and all associated code serve solely as documentation and
+demonstration purposes to illustrate potential system communication patterns and
+architectures.
 
 This codebase:
 
@@ -171,12 +167,11 @@ This codebase:
 - May contain errors, omissions, or oversimplified implementations
 - Has NOT been tested or hardened for real-world scenarios
 
-The code examples are only meant to help understand concepts and demonstrate possibilities.
+The code examples are only meant to help understand concepts and demonstrate
+possibilities.
 
 By using or referencing this code, you acknowledge that you do so at your own
 risk and that the authors assume no liability for any consequences of its use.
-
-Please refer to [MAX](https://github.com/minvws/nl-rdo-max) for the most current version.
 
 ## License
 

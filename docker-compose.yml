@@ -4,16 +4,20 @@ services:
       context: .
       dockerfile: ./docker/Dockerfile
       args:
-        UID: ${UID:-1000}
-        GID: ${GID:-1000}
-        INSTALL_NPM_ASSETS: false
+        NEW_UID: ${UID:-1000}
+        NEW_GID: ${GID:-1000}
+        INSTALL_NPM_ASSETS: true
       secrets:
         - npmrc
+      ssh:
+        - default
     volumes:
       - '.:/src'
-      - '/src/.venv'
       - '/src/node_modules'
       - '/src/static/assets'
+      - '${SSH_AUTH_SOCK:-/dev/null}:/ssh-agent'
+    environment:
+      - SSH_AUTH_SOCK=/ssh-agent
     ports:
       - '8006:8006'
       - '5676:5676'
@@ -26,13 +30,18 @@ services:
     image: redis:6.2.17
     restart: 'no'
     ports:
-      - '6379:6379'
+      - '16379:16379'
+    command: ["redis-server", "--port", "16379"]
+    networks:
+      - default
 
   redis-init:
     depends_on: [ 'redis' ]
     image: redis:6.2.17
     restart: 'no'
-    command: 'redis-cli -h redis set max:primary_identity_provider tvs'
+    command: 'redis-cli -h redis -p 16379 set max:primary_identity_provider tvs'
+    networks:
+      - default
 
   brp:
     container_name: brp
@@ -45,10 +54,12 @@ services:
     networks:
         - mgo_vad
 
-networks:
-  mgo_vad:
-    driver: bridge
-
 secrets:
   npmrc:
     file: ~/.npmrc
+
+networks:
+    default:
+        driver: bridge
+    mgo_vad:
+        driver: bridge

@@ -1,22 +1,32 @@
-# pylint:disable=too-few-public-methods
-from faker import Faker
+from fastapi import FastAPI
+import inject
 import pytest
 
-
-def pytest_addoption(parser, pluginmanager):
-    parser.addoption(
-        "--docker",
-        action="store_true",
-        default=False,
-        help="Flags whether pytest is ran inside a docker container",
-    )
-
-
-@pytest.fixture(scope="session")
-def inside_docker(pytestconfig):
-    return pytestconfig.getoption("docker")
+from typing import Generator
+from fastapi.testclient import TestClient
+from app.application import create_app
+from app.config.schemas import VadConfig
+from app.utils import load_config
+from tests.utils import configure_bindings
 
 
 @pytest.fixture()
-def faker() -> Faker:
-    return Faker()
+def config() -> VadConfig:
+    return load_config("tests/app.conf.test")
+
+
+@pytest.fixture()
+def app(config: VadConfig) -> FastAPI:
+    return create_app(config)
+
+
+@pytest.fixture()
+def test_client(app: FastAPI) -> TestClient:
+    configure_bindings()
+    return TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def clear_bindings() -> Generator[None, None, None]:
+    yield
+    inject.clear()

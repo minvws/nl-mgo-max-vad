@@ -27,7 +27,6 @@ mkdir -p ./$SECRETS_DIR/oidc
 mkdir -p ./$SECRETS_DIR/ssl
 mkdir -p ./$SECRETS_DIR/clients
 mkdir -p ./$SECRETS_DIR/jwks-certs
-mkdir -p ./tests/resources/secrets
 
 ###
 # Create ca for local selfsigned certificates
@@ -37,7 +36,7 @@ if [[ ! -f $SECRETS_DIR/cacert.crt ]]; then
   openssl req -x509 -new -nodes -sha256 -days 1024 \
 	  -key $SECRETS_DIR/cacert.key \
 	  -out $SECRETS_DIR/cacert.crt \
-	  -subj "/C=US/CN=inge-6-uzipoc-ca"
+	  -subj "/C=US/CN=max-vad-dev-ca"
 fi
 
 ###
@@ -108,32 +107,4 @@ fi
 ###
 if [[ ! -f $SECRETS_DIR/tls.crt ]]; then
   create_key_pair $SECRETS_DIR "tls" "max-tls"
-fi
-###
-# cibg client certs
-###
-if [[ ! -f $SECRETS_DIR/userinfo/cibg-client-cert.crt ]]; then
-  create_key_pair $SECRETS_DIR/userinfo "cibg-client-cert" "cibg-client-cert"
-fi
-
-#####
-# Test certificates
-#####
-###
-# test tls
-###
-if [[ ! -f tests/resources/secrets/tls.crt ]]; then
-  create_key_pair tests/resources/secrets "tls" "test-tls"
-fi
-###
-# test sp
-###
-if [[ ! -f tests/resources/secrets/sp.crt ]]; then
-  create_key_pair tests/resources/secrets "sp" "test-sp"
-fi
-###
-# test cluster
-###
-if [[ ! -f tests/resources/secrets/cluster.crt ]]; then
-  create_key_pair tests/resources/secrets "cluster" "test-cluster"
 fi
