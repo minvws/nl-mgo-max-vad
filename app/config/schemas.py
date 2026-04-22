@@ -1,7 +1,12 @@
 from enum import Enum
 from typing import Literal
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import (
+    BaseModel,
+    Field,
+    field_validator,
+    model_validator,
+)
 
 from max_core.config.schemas import CoreConfig
 from max_core.config.schemas import AppConfig as CoreAppConfig
@@ -77,14 +82,25 @@ class CbpFileCacheConfig(BaseModel):
 
 
 class SwaggerConfig(BaseModel):
-    enabled: bool = Field(default=True)
+    enabled: bool = Field(default=False)
     swagger_ui_endpoint: str | None = Field(default="/ui")
     redoc_endpoint: str | None = Field(default="/docs")
     openapi_endpoint: str | None = Field(default="/openapi.json")
 
 
+class LoggingConfig(BaseModel):
+    loglevel_default: str
+    loglevel_app: str
+
+    @field_validator("loglevel_default", "loglevel_app", mode="before")
+    @classmethod
+    def convert_loglevel_to_uppercase(cls, v: str) -> str:
+        return v.upper()
+
+
 class VadConfig(CoreConfig):
     app: AppConfig
+    logging: LoggingConfig
     uvicorn: UvicornConfig
     prs: PrsConfig
     brp: BrpConfig

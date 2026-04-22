@@ -9,6 +9,7 @@ export default defineConfig({
       input: {
         layout: resolve(__dirname, 'resources', 'css', 'app.scss'),
         submit: resolve(__dirname, 'resources', 'js', 'submit.js'),
+        mock_redirect: resolve(__dirname, 'resources', 'js', 'mock_redirect.js'),
       },
     },
     outDir: '',

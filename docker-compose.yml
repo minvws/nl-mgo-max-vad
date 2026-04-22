@@ -30,8 +30,8 @@ services:
     image: redis:6.2.17
     restart: 'no'
     ports:
-      - '16379:16379'
-    command: ["redis-server", "--port", "16379"]
+      - '6379:6379'
+    command: ["redis-server", "--port", "6379"]
     networks:
       - default
 
@@ -39,7 +39,7 @@ services:
     depends_on: [ 'redis' ]
     image: redis:6.2.17
     restart: 'no'
-    command: 'redis-cli -h redis -p 16379 set max:primary_identity_provider tvs'
+    command: 'redis-cli -h redis -p 6379 set max:primary_identity_provider tvs'
     networks:
       - default
 

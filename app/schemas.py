@@ -6,7 +6,7 @@ from app.brp.schemas import PersonDTO
 class UserInfoDTO(BaseModel):
     rid: str
     person: PersonDTO
-    sub: str = Field(description="Subject identifier containing the auth session id.")
+    sub: str
 
 
 class AuthSessionContextDTO(BaseModel):
@@ -14,3 +14,4 @@ class AuthSessionContextDTO(BaseModel):
         description="VAD pseudonym belonging to the BSN it was created with. PRS exchanges this PDN for a RID."
     )
     person: PersonDTO
+    user_id: str

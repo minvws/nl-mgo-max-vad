@@ -15,8 +15,6 @@
   - [Run the application](#run-the-application)
   - [OpenAPI](#openapi)
 - [Contributing](#contributing)
-  - [Visual Studio Code](#visual-studio-code)
-    - [Developing inside a Container](#developing-inside-a-container)
 - [Documentation](#documentation)
 - [Considerations](#considerations)
 - [Disclaimer](#disclaimer)
@@ -92,6 +90,9 @@ Please install the below programs if not present:
 - [Docker](https://www.docker.com/)
 - [Docker Compose](https://docs.docker.com/compose/)
 - [Make](https://www.gnu.org/software/make/)
+- [pre-commit](https://pre-commit.com/) (recommended to validate commit messages
+  — see [Commit Guidelines](CONTRIBUTING.md#commit-guidelines) for setup and
+  usage)
 
 Again, for further in-depth details on the setup of the MAX Core framework,
 please refer to the [MAX Core](https://github.com/minvws/irealisatie-max-core)

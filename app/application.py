@@ -1,7 +1,6 @@
 # pylint: disable=c-extension-no-member
 from functools import lru_cache
 import json
-import logging
 from typing import Any
 
 import inject
@@ -15,6 +14,7 @@ from app.config.schemas import VadConfig, UvicornConfig
 from app.cbp import init_cbp_module
 from app.cbp.lifespan import prefetch_cbp_clients
 from app.docs import init_docs_module
+from app.logging import setup_logging
 from app.utils import load_config
 
 
@@ -49,18 +49,19 @@ def run() -> None:
     uvicorn.run(
         "app.application:uvicorn_app_factory",
         factory=True,
-        **kwargs_from_config(config.uvicorn)
+        log_config=None,
+        **kwargs_from_config(config.uvicorn),
     )
 
 
 def uvicorn_app_factory() -> FastAPI:
     config = _load_config_once()
+    setup_logging(config.logging)
     return create_app(config)
 
 
 def create_app(config: VadConfig) -> FastAPI:
     version = _load_version(config.app.version_file_path)
-    logging.basicConfig(level=config.app.loglevel.upper())
 
     inject.configure_once(
         AppBindings(config),
@@ -78,7 +79,7 @@ def create_app(config: VadConfig) -> FastAPI:
     )
 
     setup_max_core(app, config)
-    init_docs_module(app)
+    init_docs_module(app, config)
     init_cbp_module(app)
 
     return app

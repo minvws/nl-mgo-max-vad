@@ -15,7 +15,7 @@ jobs:
           echo "PIP_NO_BINARY=xmlsec,lxml" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Prepare environment
         run: |

@@ -8,12 +8,36 @@
     "workspaceFolder": "/src",
     "shutdownAction": "stopCompose",
     "remoteUser": "app",
+    "mounts": [
+        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gnupg,target=/home/app/.gnupg,type=bind"
+    ],
+    "features": {
+        "ghcr.io/devcontainers-contrib/features/pre-commit:2": {}
+    },
+    "postCreateCommand": "pre-commit install",
     "customizations": {
         "vscode": {
             "extensions": [
                 "ms-python.python",
-                "ms-python.debugpy"
-            ]
+                "ms-python.debugpy",
+                "ms-python.black-formatter",
+                "ms-python.mypy-type-checker"
+            ],
+            "settings": {
+                "[python]": {
+                    "editor.defaultFormatter": "ms-python.black-formatter",
+                    "editor.formatOnSave": true
+                },
+                "black-formatter.importStrategy": "fromEnvironment",
+                "mypy-type-checker.importStrategy": "fromEnvironment",
+                "mypy-type-checker.args": [
+                    "--config-file",
+                    "${workspaceFolder}/pyproject.toml"
+                ],
+                "python.defaultInterpreterPath": "/usr/local/bin/python",
+                "python.testing.pytestEnabled": true,
+                "python.testing.unittestEnabled": false
+            }
         }
     }
 }

@@ -8,8 +8,7 @@ from app.cbp.models import CbpClient
 from app.cbp.repositories import (
     FilesystemCbpClientRepository,
 )
-
-from .fixtures import create_cbp_client
+from tests.conftest import CreateCbpClient
 
 
 class TestFilesystemCbpClientRepository:
@@ -35,9 +34,13 @@ class TestFilesystemCbpClientRepository:
             sut.get_by_id(id)
 
     def test_get_by_id_returns_client_if_found(
-        self, sut: FilesystemCbpClientRepository, faker: Faker
+        self,
+        sut: FilesystemCbpClientRepository,
+        faker: Faker,
+        create_cbp_client: CreateCbpClient,
     ) -> None:
         id = faker.uuid4()
+
         client = create_cbp_client(id=id)
         self._set_clients_on_repository(sut, [client])
 
@@ -49,7 +52,10 @@ class TestFilesystemCbpClientRepository:
         assert sut.find_by_id(faker.uuid4()) is None
 
     def test_find_by_id_returns_client_if_found(
-        self, sut: FilesystemCbpClientRepository, faker: Faker
+        self,
+        sut: FilesystemCbpClientRepository,
+        faker: Faker,
+        create_cbp_client: CreateCbpClient,
     ) -> None:
         id = faker.uuid4()
         client = create_cbp_client(id=id)
@@ -58,10 +64,12 @@ class TestFilesystemCbpClientRepository:
         assert sut.find_by_id(id) == client
 
     def test_get_all_returns_all_clients(
-        self, sut: FilesystemCbpClientRepository, faker: Faker
+        self,
+        sut: FilesystemCbpClientRepository,
+        create_cbp_client: CreateCbpClient,
     ) -> None:
-        client_a = create_cbp_client(id=faker.uuid4())
-        client_b = create_cbp_client(id=faker.uuid4())
+        client_a = create_cbp_client()
+        client_b = create_cbp_client()
         self._set_clients_on_repository(sut, [client_a, client_b])
 
         result = sut.get_all()
@@ -71,9 +79,11 @@ class TestFilesystemCbpClientRepository:
         assert client_b in result
 
     def test_init_loads_clients_if_valid_file(
-        self, filepath: Path, faker: Faker
+        self,
+        filepath: Path,
+        create_cbp_client: CreateCbpClient,
     ) -> None:
-        client = create_cbp_client(id=faker.uuid4())
+        client = create_cbp_client()
         with open(filepath, mode="w", encoding="utf-8") as tmp_file:
             dump(
                 [client],
@@ -109,7 +119,10 @@ class TestFilesystemCbpClientRepository:
             FilesystemCbpClientRepository("/root/clients.json")
 
     def test_update_overwrites_class_property(
-        self, sut: FilesystemCbpClientRepository, faker: Faker
+        self,
+        sut: FilesystemCbpClientRepository,
+        faker: Faker,
+        create_cbp_client: CreateCbpClient,
     ) -> None:
         id_a = faker.uuid4()
         id_b = faker.uuid4()
@@ -121,7 +134,12 @@ class TestFilesystemCbpClientRepository:
 
         assert sut._FilesystemCbpClientRepository__clients == {id_b: client_b}
 
-    def test_update_overwrites_cache_file(self, filepath: Path, faker: Faker) -> None:
+    def test_update_overwrites_cache_file(
+        self,
+        filepath: Path,
+        faker: Faker,
+        create_cbp_client: CreateCbpClient,
+    ) -> None:
         id_a = faker.uuid4()
         id_b = faker.uuid4()
         client_a = create_cbp_client(id=id_a)

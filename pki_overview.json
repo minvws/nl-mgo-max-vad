@@ -1,0 +1,128 @@
+[
+    {
+        "id": "mgo-max-vad:6ef24e65-2a59-45fb-ae79-1f59cd1584af",
+        "label": "authentication context secret",
+        "purpose": "Encrypting contextual authentication data pertaining to a single OIDC authorization flow.",
+        "specs": {
+            "type": "secret-key",
+            "encryption": "XSalsa20",
+            "length": "256-bit",
+            "format": "hex",
+            "generator": "manual"
+        },
+        "default_path": "app.conf",
+        "tags": []
+    },
+    {
+        "id": "mgo-max-vad:98923f8d-d0ac-450a-8d2e-659dff026777",
+        "label": "tls server private key",
+        "purpose": "Decrypting TLS traffic and proving server identity during the TLS handshake.",
+        "specs": {
+            "type": "private-key",
+            "encryption": "RSA",
+            "length": "2048-bit",
+            "format": "pem",
+            "generator": "scripts/setup-secrets.sh"
+        },
+        "default_path": "secrets/ssl/server.key",
+        "tags": []
+    },
+    {
+        "id": "mgo-max-vad:f3bcdb34-94c2-41b3-8e1c-6dfdaf6f1d2f",
+        "label": "tls server x509 certificate",
+        "purpose": "Facilitating identification to clients during the TLS handshake.",
+        "specs": {
+            "type": "certificate",
+            "encryption": "RSA",
+            "length": "2048-bit",
+            "format": "pem",
+            "generator": "scripts/setup-secrets.sh"
+        },
+        "default_path": "secrets/ssl/server.crt",
+        "tags": []
+    },
+    {
+        "id": "mgo-max-vad:088b2bad-01e1-45f9-91d9-3ceb8ff00b3b",
+        "label": "local ca x509 certificate",
+        "purpose": "Acting as a locally trusted certificate authority for issuing and signing local TLS certificates.",
+        "specs": {
+            "type": "certificate",
+            "encryption": "RSA",
+            "length": "2048-bit",
+            "format": "pem",
+            "generator": "scripts/setup-secrets.sh"
+        },
+        "default_path": "secrets/cacert.crt",
+        "tags": []
+    },
+    {
+        "id": "mgo-max-vad:0164610d-78ea-4c7d-bba2-35ae763d2bc7",
+        "label": "userinfo jwt signature private key",
+        "purpose": "Signing userinfo JWTs issued to OIDC clients.",
+        "specs": {
+            "type": "private-key",
+            "encryption": "RSA",
+            "length": "2048-bit",
+            "format": "pem",
+            "generator": "scripts/setup-secrets.sh"
+        },
+        "default_path": "secrets/nl-rdo-max-private.key",
+        "tags": []
+    },
+    {
+        "id": "mgo-max-vad:2424f3ea-4855-4b51-bf29-d9513950e66b",
+        "label": "userinfo jwt signature public key",
+        "purpose": "Signing userinfo JWTs issued to OIDC clients.",
+        "specs": {
+            "type": "public-key",
+            "encryption": "RSA",
+            "length": "2048-bit",
+            "format": "pem",
+            "generator": "scripts/setup-secrets.sh"
+        },
+        "default_path": "secrets/nl-rdo-max-private.crt",
+        "tags": []
+    },
+    {
+        "id": "mgo-max-vad:53db053e-707b-4e4d-9b46-2adf2cdf1e6c",
+        "label": "oidc idtoken signing private key",
+        "purpose": "Signing ID Tokens issued by the OpenID Provider to OIDC clients, allowing clients to verify the authenticity and integrity of the tokens.",
+        "specs": {
+            "type": "private-key",
+            "encryption": "RSA",
+            "length": "2048-bit",
+            "format": "pem",
+            "generator": "scripts/setup-secrets.sh"
+        },
+        "default_path": "secrets/oidc/selfsigned.key",
+        "tags": []
+    },
+    {
+        "id": "mgo-max-vad:a8428a47-a17a-4dcc-9fdf-5d212e25a7f2",
+        "label": "oidc idtoken signing public key",
+        "purpose": "Allowing OIDC clients to verify the digital signatures on ID Tokens issued by the OpenID Provider.",
+        "specs": {
+            "type": "public-key",
+            "encryption": "RSA",
+            "length": "2048-bit",
+            "format": "pem",
+            "generator": "scripts/setup-secrets.sh"
+        },
+        "default_path": "secrets/oidc/selfsigned.crt",
+        "tags": []
+    },
+    {
+        "id": "mgo-max-vad:68949aeb-7113-4c7e-90e2-0a372ca9e27f",
+        "label": "auth session secret",
+        "purpose": "Encrypting auth session data pertaining to an authenticated OIDC client.",
+        "specs": {
+            "type": "secret-key",
+            "encryption": "XSalsa20",
+            "length": "256-bit",
+            "format": "hex",
+            "generator": "manual"
+        },
+        "default_path": "app.conf",
+        "tags": []
+    }
+]

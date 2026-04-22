@@ -4,10 +4,8 @@ from typing import Any, Dict, Sequence
 
 import requests
 from inject import autoparams
-from jwcrypto.jwk import JWK
-from max_core.models.enums import ClientAssertionMethods
-from max_core.models.response_type import ResponseType
 
+from .factories import CbpClientFactory
 from .models import CbpClient
 from .repositories import CbpClientRepository
 
@@ -15,32 +13,6 @@ from .repositories import CbpClientRepository
 class CbpSource(ABC):
     @abstractmethod
     def get_clients(self) -> Sequence[CbpClient]: ...
-
-
-class CbpClientFactory:
-    @staticmethod
-    def create(**kwargs) -> CbpClient:
-        token_endpoint_auth_method: str
-
-        if "token_endpoint_auth_method" in kwargs:
-            token_endpoint_auth_method = str(kwargs.get("token_endpoint_auth_method"))
-        else:
-            token_endpoint_auth_method = (
-                "none"  # nosec B105 as this is NOT a password nor secret
-            )
-
-        kwargs.pop("token_endpoint_auth_method", None)
-
-        return CbpClient(  # nosec
-            name="Acme",
-            response_types=[ResponseType.CODE],
-            token_endpoint_auth_method=token_endpoint_auth_method,
-            client_authentication_method=ClientAssertionMethods.NONE,
-            public_key=JWK.generate(kty="RSA", size=2048),
-            login_methods=["digid_mock"],
-            exclude_login_methods=[],
-            **kwargs,
-        )
 
 
 class CbpHttpClient(CbpSource):

@@ -1,6 +1,8 @@
 import pytest
 
 from pydantic import ValidationError
+from max_core.config.schemas import AppConfig
+
 
 from app.config.schemas import (
     BrpConfig,
@@ -8,16 +10,12 @@ from app.config.schemas import (
     PrsRepositoryType,
     VadConfig,
 )
-from max_core.config.schemas import AppConfig
 
 
 def test_it_throws_error_on_invalid_config() -> None:
     with pytest.raises(ValidationError):
         VadConfig(
-            app=AppConfig(
-                name="VAD",
-                loglevel="info",
-            ),
+            app=AppConfig(name="VAD"),
             prs=PrsConfig(
                 prs_repository=PrsRepositoryType.MOCK,
                 repo_base_url="http://localhost:8000",

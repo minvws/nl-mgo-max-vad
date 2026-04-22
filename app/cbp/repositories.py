@@ -3,10 +3,10 @@ from abc import ABC, abstractmethod
 from os import W_OK, access, path
 from typing import Any, Dict, List, Mapping, MutableMapping, Optional, Sequence
 
-from jwcrypto.jwk import JWK
 from max_core.services.client_repository import ClientMapping, ClientRepository
 
-from app.cbp.models import CbpClient
+from .factories import CertificateWithJWKFactory
+from .models import CbpClient
 
 
 class CbpClientRepository(ClientRepository, ABC):
@@ -46,10 +46,7 @@ class FilesystemCbpClientRepository(CbpClientRepository):
             clients: List[Dict[str, Any]] = json.load(file)
 
         for client in clients:
-            k = client["public_key"]
-            client["public_key"] = JWK(
-                kty=k["kty"], n=k["n"], e=k["e"], kid=k.get("kid")
-            )
+            client["certificate"] = CertificateWithJWKFactory.create_dummy()
 
         return clients
 
@@ -69,7 +66,7 @@ class FilesystemCbpClientRepository(CbpClientRepository):
         return self.__clients.get(client_id)
 
     def get_all(self) -> Sequence[CbpClient]:
-        return list(self.__clients.values())
+        return list[CbpClient](self.__clients.values())
 
     def update(self, clients: Sequence[CbpClient]) -> None:
         self.__write_clients_to_file(clients)

@@ -23,15 +23,7 @@ The concrete `UserinfoService` implementation used in the VAD is
 `VadUserinfoService`. It composes the end-user information out of two sources:
 BRP and PRS.
 
-### BRP
+### Diving deeper in the userinfo differences
 
-Taking advantage of the BRP API, the VAD uses the end-user's BSN to retrieve a
-minimal set of data that are used to personalize the MGO Client application.
-
-### PRS
-
-The second part of the end-user information stored in the ID Token is requested
-from PRS. Passing its own Pseudonym, the VAD retrieves a RID. This short-lived
-token is bound to the end-user's BSN, but in a way that only PRS can resolve it.
-Subsequently, the MGO Client can get their own Pseudonym from PRS with that RID
-and in doing so, be able to request new RID's for later Resource requests.
+For a detailed comparison between the original MAX userinfo and the VAD userinfo contents,
+please refer to the [VAD userinfo differences](userinfo-differences.md) document. Which emphasizes the differences between the userinfo implementations and explains the structure of the VAD userinfo in detail.

@@ -13,7 +13,7 @@ jobs:
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV &&
           echo "PKG_NAME=`basename $GITHUB_REPOSITORY -private`" >> $GITHUB_ENV
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: list files
         run: ls -alR
@@ -22,7 +22,7 @@ jobs:
         run: 'echo "{ \"version\": \"${{ env.RELEASE_VERSION }}\", \"git_ref\": \"$GITHUB_SHA\"}" > static/version.json'
 
       - name: Install Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: 'npm'
@@ -40,7 +40,7 @@ jobs:
         run: tar --exclude='*.example' -czf ${{ env.PKG_NAME }}_${{ env.RELEASE_VERSION }}.tar.gz ./app ./static ./jinja2 ./saml ./lang
 
       - name: Upload release tar
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ env.PKG_NAME }}_${{ env.RELEASE_VERSION }}
           path: ${{ env.PKG_NAME }}_${{ env.RELEASE_VERSION }}.tar.gz

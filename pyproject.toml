@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "nl-rdo-max-vad"
+name = "nl-mgo-max-vad"
 package-mode = false
 version = "0.1.0"
 description = "An extension upon the MAX-core framework adding a userinfo provider that compiles authorization context and PII to support the VAD authentication flow"
@@ -12,25 +12,26 @@ nl-irealisatie-max-core = {git = "git@github.com:minvws/irealisatie-max-core.git
 python = ">=3.11,<3.12"
 slowapi = ">=0.1.9,<0.2.0"
 inject = ">=5.3.0,<6.0.0"
-uvicorn = "^0.38.0"
+uvicorn = "^0.40.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.group.dev.dependencies]
-black = "^25.9.0"
-pylint = "^3.3.9"
-bandit = "^1.8.5"
-mypy = "^1.18.2"
+black = "^26.1.0"
+pylint = "^4.0.4"
+bandit = "^1.9.3"
+mypy = "^1.19.1"
 autoflake = "^2.3.1"
-pytest = "^8.4.2"
+pytest = "^9.0.2"
 pytest-cov = "^7.0.0"
 pytest-mock = "^3.15.1"
-faker = "^37.11.0"
-debugpy = "^1.8.17"
-types-requests = "^2.32.4.20250913"
-types-jwcrypto = "^1.5.0.20250516"
+faker = "^40.1.2"
+debugpy = "^1.8.19"
+types-requests = "^2.32.4.20260107"
+types-jwcrypto = "^1.5.0.20251102"
+watchfiles = "^1.1.1"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -38,6 +39,15 @@ testpaths = ["tests"]
 [tool.mypy]
 files = "app"
 warn_unused_configs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "pyop.message",
+    "pyop.userinfo",
+    "pyop.provider",
+    "jwkest.jwk",
+]
+ignore_missing_imports = true
 
 [tool.pylint.messages_control]
 disable = ["C0114", "C0115", "C0116", "W0511"]

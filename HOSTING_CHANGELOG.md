@@ -2,6 +2,27 @@
 
 - [NEXT FUTURE RELEASE]
 
+- [0.8.0]
+
+  No changes required
+
+- [0.7.0]
+
+  Added:
+
+  - Section `[logging]` added.
+    - `loglevel_app` – log level for application loggers (`app`, `max_core`, `uvicorn`); should match the previous `app.loglevel` (`INFO`).
+    - `loglevel_default` – log level for all other loggers; recommended value is `WARNING`.
+
+  Removed:
+  
+  - `app.loglevel` (replaced by `logging.loglevel_app`).
+  - `app.client_repository` (unused)
+
+- [0.6.1]
+
+  No changes required
+
 - [0.6.0]
 
   Changed:

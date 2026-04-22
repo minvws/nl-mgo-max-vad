@@ -10,6 +10,8 @@ from app.config.schemas import UvicornConfig, VadConfig
 def test_create_app_with_mocked_config_and_version(
     mocker: MockerFixture, config: VadConfig
 ) -> None:
+    config.swagger.enabled = True
+
     mocker.patch("app.application._load_config_once", return_value=config)
     mocker.patch("app.application._load_version", return_value="1.2.3")
 

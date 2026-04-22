@@ -39,7 +39,7 @@ run-local:
 	poetry run python -m app.main
 
 check:
-	poetry run pylint app
+	poetry run pylint app tests
 	poetry run black --check app tests
 
 audit:

@@ -14,8 +14,8 @@ ARG PROJECT_DIR="/src" \
     NEW_UID=1000 \
     NEW_GID=1000 \
     INSTALL_NPM_ASSETS=true \
-    XMLSEC_VERSION=1.3.15 \
-    LXML_VERSION=5.4.0
+    XMLSEC_VERSION=1.3.17 \
+    LXML_VERSION=6.0.2
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -134,4 +134,4 @@ EXPOSE 8006
 
 USER ${APP_USER}
 
-CMD ["python", "-m", "debugpy", "--listen", "0.0.0.0:5676", "-m", "app.main"]
+CMD ["python", "-Xfrozen_modules=off", "-m", "debugpy", "--listen", "0.0.0.0:5676", "-m", "app.main"]

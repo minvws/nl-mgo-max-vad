@@ -13,7 +13,7 @@ from pytest import fixture
 from pytest_mock import MockerFixture
 from requests import JSONDecodeError, Response
 
-from .fixtures import create_cbp_client
+from tests.conftest import CreateCbpClient
 
 
 class TestCbpClientFactory:
@@ -204,9 +204,9 @@ class TestCbpClientFetcher:
         sut: CbpClientFetcher,
         cached_cbp_client_repository: CbpClientRepository,
         cbp_source: CbpSource,
-        faker: Faker,
+        create_cbp_client: CreateCbpClient,
     ) -> None:
-        clients = [create_cbp_client(id=faker.uuid4()) for _ in range(2)]
+        clients = [create_cbp_client() for _ in range(2)]
         cbp_source.get_clients.return_value = clients
         cached_cbp_client_repository.get_all.return_value = []
 
@@ -221,9 +221,9 @@ class TestCbpClientFetcher:
         sut: CbpClientFetcher,
         cached_cbp_client_repository: CbpClientRepository,
         cbp_source: CbpSource,
-        faker: Faker,
+        create_cbp_client: CreateCbpClient,
     ) -> None:
-        clients = [create_cbp_client(id=faker.uuid4()) for _ in range(2)]
+        clients = [create_cbp_client() for _ in range(2)]
         cbp_source.get_clients.return_value = clients
 
         sut.fetch(use_cache=False)
@@ -237,9 +237,9 @@ class TestCbpClientFetcher:
         sut: CbpClientFetcher,
         cached_cbp_client_repository: CbpClientRepository,
         cbp_source: CbpSource,
-        faker: Faker,
+        create_cbp_client: CreateCbpClient,
     ) -> None:
-        clients = [create_cbp_client(id=faker.uuid4()) for _ in range(2)]
+        clients = [create_cbp_client() for _ in range(2)]
         cached_cbp_client_repository.get_all.return_value = clients
 
         sut.fetch(use_cache=True)

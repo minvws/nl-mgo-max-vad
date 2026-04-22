@@ -1,17 +1,13 @@
 import json
 from pathlib import Path
 
-from app.application import create_app
-from app.config.schemas import (
-    CbpFileCacheConfig,
-    CbpHttpClientConfig,
-    VadConfig,
-)
-from faker import Faker
 from fastapi.testclient import TestClient
+from faker import Faker
 from pytest_mock import MockerFixture, MockType
 from requests import Response
 
+from app.application import create_app
+from app.config.schemas import CbpFileCacheConfig, CbpHttpClientConfig, VadConfig
 from tests.utils import configure_bindings
 
 
